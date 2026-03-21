@@ -95,7 +95,7 @@ var AÑOS = [2024, 2025, 2026];
 
 // ─── BACKEND CONFIG ─────────────────────────────────────────
 // Cambiá esta URL por la IP/dominio de tu servidor en producción
-var API_URL = window.location.origin;
+var API_URL = window.location.origin.includes("localhost") ? window.location.origin : "http://localhost:8000";
 var ADMIN_TOKEN = "ersep-admin-2026-secreto";
 var P = {
   navy: "#1F3864",
@@ -3652,8 +3652,8 @@ function DatosGeneralesTab(_ref11) {
   }, /*#__PURE__*/React.createElement(Btn, {
     onClick: onSave,
     disabled: saving,
-    style: saved ? {background:"#27ae60",color:"#fff",borderColor:"#27ae60"} : {}
-  }, saving ? "Guardando..." : saved ? "\u2705 \u00A1Guardado!" : "💾 Guardar borrador"), form.estado === "enviado" && /*#__PURE__*/React.createElement(Badge, {
+    style: saved ? {background: P.verde, color: "#fff", borderColor: P.verde} : {}
+  }, saving ? "Guardando..." : saved ? "✅ ¡Guardado!" : "💾 Guardar borrador"), form.estado === "enviado" && /*#__PURE__*/React.createElement(Badge, {
     color: P.verde
   }, "\u2713 DDJJ enviada el ", form.fechaEnvio)));
 }
@@ -3844,7 +3844,7 @@ function DocumentacionTab(_ref13) {
       onAttach: handleFile
     });
   })), /*#__PURE__*/React.createElement(Btn, {
-    onClick: onSave
+    onClick: function() { onSave(); var btn=event.target; btn.textContent="✅ ¡Guardado!"; btn.style.background=P.verde; btn.style.color="#fff"; btn.style.borderColor=P.verde; setTimeout(function(){ btn.textContent="💾 Guardar documentación"; btn.style.background=""; btn.style.color=""; btn.style.borderColor=""; }, 2500); }
   }, "\uD83D\uDCBE Guardar documentaci\xF3n"));
 }
 
@@ -4001,10 +4001,10 @@ function EmpresaApp(_ref15) {
     _useState20 = _slicedToArray(_useState19, 2),
     saving = _useState20[0],
     setSaving = _useState20[1];
-  var _usStateSaved = useState(false),
-    _usStateSaved2 = _slicedToArray(_usStateSaved, 2),
-    saved = _usStateSaved2[0],
-    setSaved = _usStateSaved2[1];
+  var _useState20b = useState(false),
+    _useState20c = _slicedToArray(_useState20b, 2),
+    saved = _useState20c[0],
+    setSaved = _useState20c[1];
   var _useState21 = useState(false),
     _useState22 = _slicedToArray(_useState21, 2),
     enviando = _useState22[0],
@@ -4776,29 +4776,29 @@ function AdminEmpresaTab(_ref17) {
         color: P.verde
       }
     }, "\u2713 ", doc.nombre, " \xB7 ", doc.tamaño), /*#__PURE__*/React.createElement("a", {
-      href: "#",
-      onClick: function(ev) {
-        ev.preventDefault();
-        var bid = row.form && row.form.backendId;
-        if (!bid || String(bid).startsWith("LOCAL")) { alert("Archivo no disponible en el servidor"); return; }
-        fetch(API_URL + "/admin/ddjj/" + bid, {
-          headers: {"Authorization": "Bearer " + ADMIN_TOKEN}
-        }).then(function(r){return r.json();})
-         .then(function(data){
-           var sf = data.archivos && data.archivos.find(function(a){return a.doc_id===dc.id.toLowerCase();});
-           if(!sf){alert("Archivo no encontrado en el servidor");return;}
-           fetch(API_URL + sf.url_descarga, {headers:{"Authorization":"Bearer "+ADMIN_TOKEN}})
-             .then(function(r){return r.blob();})
-             .then(function(blob){
-               var u=URL.createObjectURL(blob),a=document.createElement("a");
-               a.href=u;a.download=sf.nombre_original;a.click();URL.revokeObjectURL(u);
-             });
-         })["catch"](function(){alert("Error al descargar");});
-      },
+      href: API_URL + "/admin/archivos/" + (doc.archivoId || ""),
+      target: "_blank",
+      rel: "noopener",
       style: {
-        display:"inline-block",marginTop:6,padding:"4px 12px",
-        background:"#1F3864",color:"#fff",borderRadius:6,
-        fontSize:11,fontWeight:600,textDecoration:"none",cursor:"pointer"
+        display: "inline-block",
+        marginTop: 6,
+        padding: "4px 12px",
+        background: P.navy,
+        color: "#fff",
+        borderRadius: 6,
+        fontSize: 11,
+        fontWeight: 600,
+        textDecoration: "none",
+        cursor: "pointer"
+      },
+      onClick: function(e) {
+        if (!doc.archivoId) {
+          e.preventDefault();
+          var link = document.createElement("a");
+          link.href = URL.createObjectURL(doc.file || new Blob());
+          link.download = doc.nombre || "archivo";
+          link.click();
+        }
       }
     }, "\u2B07 Descargar")) : /*#__PURE__*/React.createElement("div", {
       style: {
