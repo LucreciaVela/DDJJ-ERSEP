@@ -4746,7 +4746,36 @@ function AdminEmpresaTab(_ref17) {
         textAlign: "right"
       }
     }, fmtM(l.ing)));
-  })))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(SecTitle, null, "\uD83D\uDCCE Documentaci\xF3n adjunta"), /*#__PURE__*/React.createElement("div", {
+  })))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(SecTitle, null, "\uD83D\uDCCE Documentaci\xF3n adjunta"), /*#__PURE__*/React.createElement(AdminArchivos, { row: row })))));}
+
+function AdminArchivos(_ref17b) {
+  var row = _ref17b.row;
+  var _useState_aa = useState(null),
+    _useState_ab = _slicedToArray(_useState_aa, 2),
+    serverFiles = _useState_ab[0],
+    setServerFiles = _useState_ab[1];
+  var _useState_ac = useState(false),
+    _useState_ad = _slicedToArray(_useState_ac, 2),
+    loadingFiles = _useState_ad[0],
+    setLoadingFiles = _useState_ad[1];
+
+  useEffect(function() {
+    var bid = row && row.form && row.form.backendId;
+    if (bid && !String(bid).startsWith("LOCAL")) {
+      setLoadingFiles(true);
+      fetch(API_URL + "/admin/ddjj/" + bid, {
+        headers: { "Authorization": "Bearer " + ADMIN_TOKEN }
+      }).then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(data){
+          if (data && data.archivos) setServerFiles(data.archivos);
+          setLoadingFiles(false);
+        })["catch"](function(){ setLoadingFiles(false); });
+    }
+  }, [row && row.cuit, row && row.form && row.form.backendId]);
+
+  if (loadingFiles) return /*#__PURE__*/React.createElement("div", {style:{padding:12,color:P.sub,fontSize:12}}, "Cargando archivos...");
+
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
@@ -4755,13 +4784,14 @@ function AdminEmpresaTab(_ref17) {
   }, DOCS_CONFIG.map(function (dc) {
     var _row$form3;
     var doc = (_row$form3 = row.form) === null || _row$form3 === void 0 || (_row$form3 = _row$form3.documentos) === null || _row$form3 === void 0 ? void 0 : _row$form3[dc.id];
+    var serverFile = serverFiles && serverFiles.find(function(a){ return a.doc_id === dc.id.toLowerCase(); });
     return /*#__PURE__*/React.createElement("div", {
       key: dc.id,
       style: {
         border: "1px solid ".concat(P.borde),
         borderRadius: 8,
         padding: "10px 14px",
-        background: doc ? "#f0fff4" : "#fff"
+        background: (doc || serverFile) ? "#f0fff4" : "#fff"
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -4770,15 +4800,27 @@ function AdminEmpresaTab(_ref17) {
         color: P.navy,
         marginBottom: 4
       }
-    }, dc.label), doc ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    }, dc.label), (doc || serverFile) ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: P.verde
       }
-    }, "\u2713 ", doc.nombre, " \xB7 ", doc.tamaño), /*#__PURE__*/React.createElement("a", {
-      href: API_URL + "/admin/archivos/" + (doc.archivoId || ""),
-      target: "_blank",
-      rel: "noopener",
+    }, "\u2713 ", serverFile ? serverFile.nombre_original : doc.nombre, " \xB7 ", serverFile ? (serverFile.tamaño_kb + " KB") : doc.tamaño), serverFile ? /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      onClick: function(e) {
+        e.preventDefault();
+        fetch(API_URL + serverFile.url_descarga, {
+          headers: { "Authorization": "Bearer " + ADMIN_TOKEN }
+        }).then(function(r){ return r.blob(); })
+          .then(function(blob){
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = serverFile.nombre_original;
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+      },
       style: {
         display: "inline-block",
         marginTop: 6,
@@ -4790,23 +4832,16 @@ function AdminEmpresaTab(_ref17) {
         fontWeight: 600,
         textDecoration: "none",
         cursor: "pointer"
-      },
-      onClick: function(e) {
-        if (!doc.archivoId) {
-          e.preventDefault();
-          var link = document.createElement("a");
-          link.href = URL.createObjectURL(doc.file || new Blob());
-          link.download = doc.nombre || "archivo";
-          link.click();
-        }
       }
-    }, "\u2B07 Descargar")) : /*#__PURE__*/React.createElement("div", {
+    }, "\u2B07 Descargar") : /*#__PURE__*/React.createElement("div", {
+      style: { fontSize: 10, color: P.sub, marginTop: 4 }
+    }, "\u26A0 Archivo local, no disponible para descarga")) : /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 11,
         color: "#ccc"
       }
     }, "Sin adjuntar"));
-  })))));
+  }));
 }
 
 // ═══════════════════════════════════════════════════════════════
