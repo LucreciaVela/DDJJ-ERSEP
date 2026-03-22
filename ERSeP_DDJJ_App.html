@@ -29,9 +29,10 @@
     };
   </script>
   <script>
-    var useState  = React.useState;
-    var useEffect = React.useEffect;
-    var useRef    = React.useRef;
+    var _R = (typeof React !== "undefined") ? React : {};
+    var useState  = _R.useState  || function(){};
+    var useEffect = _R.useEffect || function(){};
+    var useRef    = _R.useRef    || function(){};
     var _RC = (typeof Recharts !== "undefined") ? Recharts : {};
     var BarChart  = _RC.BarChart  || function(){ return null; };
     var Bar       = _RC.Bar       || function(){ return null; };
@@ -2535,6 +2536,10 @@ function emptyForm() {
 //  EXPORTS
 // ═══════════════════════════════════════════════════════════════
 function exportExcel(rows, periodo_str) {
+  if (!XLSX || !XLSX.utils) {
+    alert("⚠ La librería de Excel no se cargó correctamente.\nRevisá tu conexión a internet y recargá la página.");
+    return;
+  }
   var wb = XLSX.utils.book_new();
 
   // Hoja 1 – Resumen
@@ -3755,17 +3760,23 @@ function DocumentacionTab(_ref13) {
       return;
     }
     setFileError("");
-    var meta = {
-      nombre: file.name,
-      tamaño: (file.size / 1024).toFixed(1) + " KB",
-      tipo: file.type,
-      fecha: new Date().toLocaleDateString("es-AR")
-    };
-    setForm(function (p) {
-      return _objectSpread(_objectSpread({}, p), {}, {
-        documentos: _objectSpread(_objectSpread({}, p.documentos), {}, _defineProperty({}, id, meta))
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var meta = {
+        nombre: file.name,
+        tamaño: (file.size / 1024).toFixed(1) + " KB",
+        tipo: file.type,
+        fecha: new Date().toLocaleDateString("es-AR"),
+        file: file,
+        dataUrl: e.target.result
+      };
+      setForm(function (p) {
+        return _objectSpread(_objectSpread({}, p), {}, {
+          documentos: _objectSpread(_objectSpread({}, p.documentos), {}, _defineProperty({}, id, meta))
+        });
       });
-    });
+    };
+    reader.readAsDataURL(file);
   }
   var secA = DOCS_CONFIG.filter(function (d) {
     return d.sec === "A";
@@ -4150,8 +4161,10 @@ function EmpresaApp(_ref15) {
             alert("✅ DDJJ enviada y guardada en el servidor.\nID: " + data.ddjj_id);
             return _context6.a(2);
           case 11:
-            _context6.n = 13;
-            break;
+            setEnviando(false);
+            setTab("enviar");
+            alert("❌ El servidor rechazó los datos (código " + resp.status + ").\n\nLos datos quedaron guardados localmente.\nContactá soporte: revisar campos del formulario.");
+            return _context6.a(2);
           case 12:
             _context6.p = 12;
             _t6 = _context6.v;
@@ -4160,7 +4173,7 @@ function EmpresaApp(_ref15) {
           case 13:
             setEnviando(false);
             setTab("enviar");
-            alert("❌ El servidor rechazó los datos (código 422).\n\nLos datos quedaron guardados localmente.\nContactá soporte: revisar campos del formulario.");
+            alert("✅ DDJJ guardada localmente.\n\nEl servidor no está disponible en este momento.\nLos datos quedaron almacenados en tu dispositivo y podrás reenviarlos más tarde.");
           case 14:
             return _context6.a(2);
         }
@@ -4795,9 +4808,19 @@ function AdminEmpresaTab(_ref17) {
         if (!doc.archivoId) {
           e.preventDefault();
           var link = document.createElement("a");
-          link.href = URL.createObjectURL(doc.file || new Blob());
-          link.download = doc.nombre || "archivo";
-          link.click();
+          if (doc.file instanceof Blob) {
+            var url = URL.createObjectURL(doc.file);
+            link.href = url;
+            link.download = doc.nombre || "archivo";
+            link.click();
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+          } else if (doc.dataUrl) {
+            link.href = doc.dataUrl;
+            link.download = doc.nombre || "archivo";
+            link.click();
+          } else {
+            alert("⚠ Este archivo no está disponible para descarga.\nPor favor, volvé a adjuntarlo.");
+          }
         }
       }
     }, "\u2B07 Descargar")) : /*#__PURE__*/React.createElement("div", {
@@ -5201,8 +5224,16 @@ function App() {
   return null;
 }
 
-    var rootEl = ReactDOM.createRoot(document.getElementById("root"));
-    rootEl.render(React.createElement(App));
+    if (typeof React === "undefined" || typeof ReactDOM === "undefined") {
+      document.getElementById("root").innerHTML = '<div style="padding:40px;font-family:Segoe UI,Arial,sans-serif;max-width:600px;margin:40px auto;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.1)">' +
+        '<h2 style="color:#c00;margin-bottom:16px">⚠ No se pudieron cargar las dependencias</h2>' +
+        '<p style="color:#333;line-height:1.6">La aplicación necesita conexión a internet para cargar React desde el CDN la primera vez.</p>' +
+        '<p style="color:#333;line-height:1.6;margin-top:12px"><b>Solución:</b> Abrí este archivo en un navegador con conexión a internet.</p>' +
+        '<p style="color:#999;font-size:12px;margin-top:20px">Recursos requeridos:<br>• unpkg.com/react@18<br>• unpkg.com/react-dom@18</p></div>';
+    } else {
+      var rootEl = ReactDOM.createRoot(document.getElementById("root"));
+      rootEl.render(React.createElement(App));
+    }
   </script>
 </body>
 </html>
