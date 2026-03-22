@@ -2587,7 +2587,21 @@ function exportExcel(rows, periodo_str) {
   XLSX.writeFile(wb, "ERSeP_DDJJ_".concat(periodo_str.replace(/ /g, "_"), ".xlsx"));
 }
 function exportPDF(rows, periodo_str) {
-  var html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">\n  <title>ERSeP DDJJ ".concat(periodo_str, "</title>\n  <style>\n    body{font-family:Arial,sans-serif;font-size:10px;margin:15px;color:#1a1a2e}\n    .hdr{display:flex;align-items:center;gap:16px;border-bottom:3px solid #C1272D;padding-bottom:10px;margin-bottom:16px}\n    .logo-text{font-size:26px;font-weight:900;color:#C1272D;letter-spacing:-1px}\n    .titulo{font-weight:700;color:#1F3864;font-size:13px}\n    h2{color:#1F3864;font-size:11px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px}\n    table{border-collapse:collapse;width:100%}\n    th{background:#1F3864;color:#fff;padding:5px 7px;text-align:left;font-size:9px}\n    td{padding:4px 7px;border-bottom:1px solid #e8e8e8;font-size:9px}\n    tr:nth-child(even){background:#f5f6fa}\n    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}\n    .kpi{background:#f0f4fc;border-radius:6px;padding:8px;text-align:center}\n    .kpi-v{font-size:14px;font-weight:700;color:#1F3864}\n    .kpi-l{font-size:8px;color:#666;margin-top:2px}\n    @media print{body{margin:8px}}\n  </style></head><body>\n  <div class=\"hdr\">\n    <div class=\"logo-text\">ERSeP</div>\n    <div>\n      <div class=\"titulo\">Ente Regulador de los Servicios P\xFAblicos \u2013 C\xF3rdoba</div>\n      <div style=\"font-size:9px;color:#666\">DDJJ Producci\xF3n, Empleo y Combustible \xB7 ").concat(periodo_str, "</div>\n      <div style=\"font-size:9px;color:#666\">Generado: ").concat(new Date().toLocaleDateString("es-AR"), " \xB7 ").concat(rows.length, " empresa(s)</div>\n    </div>\n  </div>\n  ").concat(function () {
+  var pdfCSS = "body{font-family:Arial,sans-serif;font-size:10px;margin:15px;color:#1a1a2e}" +
+    " .hdr{display:flex;align-items:center;gap:16px;border-bottom:3px solid #C1272D;padding-bottom:10px;margin-bottom:16px}" +
+    " .logo-text{font-size:26px;font-weight:900;color:#C1272D;letter-spacing:-1px}" +
+    " .titulo{font-weight:700;color:#1F3864;font-size:13px}" +
+    " h2{color:#1F3864;font-size:11px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px}" +
+    " table{border-collapse:collapse;width:100" + String.fromCharCode(37) + "}" +
+    " th{background:#1F3864;color:#fff;padding:5px 7px;text-align:left;font-size:9px}" +
+    " td{padding:4px 7px;border-bottom:1px solid #e8e8e8;font-size:9px}" +
+    " tr:nth-child(even){background:#f5f6fa}" +
+    " .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}" +
+    " .kpi{background:#f0f4fc;border-radius:6px;padding:8px;text-align:center}" +
+    " .kpi-v{font-size:14px;font-weight:700;color:#1F3864}" +
+    " .kpi-l{font-size:8px;color:#666;margin-top:2px}" +
+    " @media print{body{margin:8px}" + "}";
+  var html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">\n  <title>ERSeP DDJJ ".concat(periodo_str, "</title>\n  <style>\n    ", pdfCSS, "\n  </style></head><body>\n  <div class=\"hdr\">\n    <div class=\"logo-text\">ERSeP</div>\n    <div>\n      <div class=\"titulo\">Ente Regulador de los Servicios P\xFAblicos \u2013 C\xF3rdoba</div>\n      <div style=\"font-size:9px;color:#666\">DDJJ Producci\xF3n, Empleo y Combustible \xB7 ").concat(periodo_str, "</div>\n      <div style=\"font-size:9px;color:#666\">Generado: ").concat(new Date().toLocaleDateString("es-AR"), " \xB7 ").concat(rows.length, " empresa(s)</div>\n    </div>\n  </div>\n  ").concat(function () {
     var sys = rows.reduce(function (a, r) {
       var _r$form8;
       return {
